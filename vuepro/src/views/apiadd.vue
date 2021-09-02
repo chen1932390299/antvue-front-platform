@@ -482,7 +482,7 @@
     },
 
     created () {
-        
+      this.getProjectsList()
     },
 
     data () {
@@ -709,7 +709,7 @@
                                             })
                                     
                                         }else{
-                                            console.log(res.data.msg)
+                                            
                                             this.$message.error("请检验表单必填检验错误！");
                                         }
 
@@ -921,6 +921,32 @@
           console.log(err)
         })
 
+    },
+
+    getProjectsList(){
+      this.$axios({
+          url:`demo-service/api/projects`,
+          method:'get',
+          params:{...this.page_param}
+
+        }).then(res =>{
+          if (res.data.success ==true && res.data.code ==200){
+            let newData=res.data.data.map(item => (
+              {
+                id: item.id,
+                value: item.project_name,
+                }
+          ));
+          this.data_project=newData;
+          
+          }else{
+            this.$message.error(JSON.stringify(res.data.msg))
+          }
+
+
+        }).catch(err=>{
+          console.log(err)
+        })
     }
 
 

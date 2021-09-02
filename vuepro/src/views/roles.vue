@@ -3,7 +3,7 @@
     <a-card title="角色管理" :bordered="false" style="width: 100%">
         <a-button class="editable-add-btn" @click="addrole"  type="primary"  style="margin-bottom: 10px;">Add</a-button>
 
-        <a-table bordered :data-source="dataSource" :columns="columns"  rowKey="id">
+        <a-table bordered :data-source="dataSource" :columns="columns" row-key="id" >
       
             <template slot="operation" slot-scope="text, record,index">
                 <a-button type="link" size="small" @click="editrole(record)">编辑</a-button>
@@ -32,34 +32,22 @@
 <script>
 
 const data=[
-{
-          id: '1',
-          name: 'sup角色',
-          type: '普通用户',
-          member: 'Mr simple , ailce',
-        },
-        {
-          id: '2',
-          name: 'admin 角色',
-          type: 'admin',
-          member: 'Miss Lisa,Miss zhang',
-        }
       
 ]
 
 const columns= [
         {
-          title: 'name',
-          dataIndex: 'name',
+          title: '角色名称',
+          dataIndex: 'role_name',
     
         },
         {
-          title: 'type',
-          dataIndex: 'type',
+          title: '类型',
+          dataIndex: 'role_type',
         },
         {
-          title: 'member',
-          dataIndex: 'member',
+          title: '状态',
+          dataIndex: 'status',
         },
         {
           title: 'operation',
@@ -69,17 +57,52 @@ const columns= [
       ]
 
  export default {
-
+    
         data(){
             return {
             dataSource:data,
             columns,
             visibleRoleModal:false,
-            
+            pagination:{
+              page:1,
+              page_size:10
+            },
+            total:0
 
             }
         },
         methods: {
+
+          // GET ROLES list  
+            GetRoleList(){
+              this.$axios({
+      url:"demo-service/api/role/info",
+      method:"get",
+      params:{...this.pagination}
+    }
+    ).then(res=>{
+        let newData=[]
+        let items = res.data.data
+        for( let item of items){
+          
+          newData.push({
+          id:item.id,
+          suites:JSON.stringify(item.suite_items),
+          role_name:item.role_name,
+          role_type :item.role_type_value,
+          status:item.status_value,
+          create_by:item.create_by,
+          create_time:item.create_time
+        })
+        }
+        this.dataSource=newData
+        this.total=res.data.totals
+  
+    }).catch(err=>{
+     console.log(err)
+    })
+
+            },
             addrole(){
                 console.log("yyyds  add")
                 this.$router.push("/addrole")
@@ -101,7 +124,7 @@ const columns= [
         },
 
         created () {
-            
+           this.GetRoleList()
         },
 
 

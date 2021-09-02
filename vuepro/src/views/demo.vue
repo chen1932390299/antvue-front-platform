@@ -1,106 +1,66 @@
 <template>
-  
-  <a-select
-  mode="multiple"
-  :label-in-value="true"
-  :value="value"
-  placeholder="Select users"
-  style="width: 100%"
-  :filter-option="false"
-  :not-found-content="fetching ? undefined : null"
-  @search="querySuite"
-  @change="handleChange"
->
-  <a-spin v-if="fetching" slot="notFoundContent" size="small" />
-  <a-select-option v-for="d in data" :key="d.id">
-    {{d.value}}
-  </a-select-option>
-</a-select>
-
+  <div id="app">
+    <div id="map" style="width:100%;height:500px"></div>
+    <div>
+      <button type="primary" @click="exportXmind">导出</button>
+    </div>
+  </div>
 
 </template>
 
 <script>
+import MindElixir, { E } from "mind-elixir";
 
-  export default{
+export default {
+  name: "App",
+  data() {
+    return {
+      ME: null
+    };
+  },
+  mounted() {
+    this.ME = new MindElixir({
+      el: "#map",
+      direction: MindElixir.LEFT,
+      data: MindElixir.new("new topic"),
+      draggable: true, // default true
+      contextMenu: true, // default true
+      toolBar: true, // default true
+      nodeMenu: true, // default true
+      keypress: true // default true
+    });
+    this.ME.init();
+  },
+  methods: {
+    exportXmind(){
+    console.log("xxxxxxxxx")
+    let datas =  this.ME.getAllDataString();
+    console.log(datas);
+  　if ("download" in document.createElement("a")) {
+　　　　let eleLink = document.createElement("a");
+　　　　eleLink.download = 'test.xmind';
+　　　　eleLink.style.display = "none";
+　　　　let blob = new Blob([datas])
+　　　　eleLink.href = URL.createObjectURL(blob)
 
-    data(){
-
-
-      return{
-
-        data :[],
-        value: [],
-        fetching: false,
-        suite_ids:[]
-
-      }
-
-    },
-    methods:{
-      handleChange(value){
-        Object.assign(this, {
-        value,
-        data: [],
-        fetching: false,
-      });
-      let item_ids =[]
-      for (let item of this.value){
-        item_ids.push(item.key)
-      }
-      this.suite_ids = item_ids
-      console.log(this.suite_ids)
-      },
-      querySuite(value){
-        this.fetching = true;
-        this.$axios({
-          url:`demo-service/api/testsuite`,
-          method:'get',
-          params:{'search':value}
-
-        }).then(res =>{
-          if (res.data.success ==true && res.data.code ==200 ){
-
-            let newData=res.data.data.map(item => (
-              {
-                id: item.id,
-                value: item.suite_name,
-                }
-          ));
-          this.data =newData;
-          this.fetching = false;
-          }else{
-            this.$message.error(JSON.stringify(res.data.msg))
-          }
-
-
-        }).catch(err=>{
-          console.log(err)
-        })
-
-        // let newData = [{id:1,value:"hello"},{id:2,value:'h2'}]
-     
-        // this.data = newData
-
-
-      }
-
-
-
-    },
-
-    created () {
-      
-    }
-
-
-
+　　　　//兼容firefox,元素添加到页面才能触发点击
+　　　　document.body.appendChild(eleLink)
+　　　　eleLink.click()
+　　　　document.body.removeChild(eleLink)
+　　}
   }
-
+}
+}
 
 </script>
 
 <style>
-
-
+#app {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
 </style>

@@ -1,70 +1,71 @@
 <template>
   <div>
-      <div class="head-list">
-          <a-card  :bordered="false" >
-            <a-form :form="queryform" @submit="handleSearch"  layout="inline"> 
-              <a-form-item label="项目名称">
-                <a-select
-                @search="getProject"
-                :filter-option="false"
-                @change="changeprojectValue"
-                placeholder="支持搜索"
-                show-search
-                style="width: 200px;"
-                  v-decorator="[
-                    'project_id',
-                    {
-                      initialValue: ''
-                    },
-                  ]"
-          
-                >
-                <a-select-option v-for="d in project_data" :value="d.id" :key="d.id">{{d.project_name}}</a-select-option>
-                </a-select>
-              </a-form-item>
-    
-              <a-form-item label="执行状态">
-                  <a-select
-                  show-search
-                  :filter-option="false"
-                  style="width: 220px" @change="statusChange"
-                      v-decorator="[
-                      'status',
-                      {
-                          rules: [
-                          {
-                              required: false,
-                              message: '',
-                          },
-                          ],
-                          initialValue: ''
-                      },
-                      ]"
-                      placeholder="请选择status"
-                  >
-                  <a-select-option v-for=" item in status_data" :key="item.id" :value="item.id">
-                      {{item.value}}
-                      </a-select-option>
-                  </a-select>
-                  </a-form-item>
-    
-                  <a-form-item style="float: right;">
-                    <a-row>
-                      <a-col :span="24" :style="{ textAlign: 'right' }">
-                        <a-button type="primary" html-type="submit">
-                          Search
-                        </a-button>
-                        <a-button :style="{ marginLeft: '8px' }" @click="handleReset">
-                          Clear
-                        </a-button>
-                      </a-col>
-                    </a-row>
-                  </a-form-item>
-        </a-form>
-          </a-card>
-      </div>
+
       <div>
         <a-card :bordered="true" style="width: 100%" title="接口列表">
+          <div class="head-list">
+            <a-card  :bordered="false" class="st-card">
+              <a-form :form="queryform" @submit="handleSearch"  layout="inline" class="search-input"> 
+                <a-form-item label="项目名称">
+                  <a-select
+                  @search="getProject"
+                  :filter-option="false"
+                  @change="changeprojectValue"
+                  placeholder="支持搜索"
+                  show-search
+                  style="width: 200px;"
+                    v-decorator="[
+                      'project_id',
+                      {
+                        initialValue: ''
+                      },
+                    ]"
+            
+                  >
+                  <a-select-option v-for="d in project_data" :value="d.id" :key="d.id">{{d.project_name}}</a-select-option>
+                  </a-select>
+                </a-form-item>
+      
+                <a-form-item label="执行状态">
+                    <a-select
+                    show-search
+                    :filter-option="false"
+                    style="width: 220px" @change="statusChange"
+                        v-decorator="[
+                        'status',
+                        {
+                            rules: [
+                            {
+                                required: false,
+                                message: '',
+                            },
+                            ],
+                            initialValue: ''
+                        },
+                        ]"
+                        placeholder="请选择status"
+                    >
+                    <a-select-option v-for=" item in status_data" :key="item.id" :value="item.id">
+                        {{item.value}}
+                        </a-select-option>
+                    </a-select>
+                    </a-form-item>
+      
+                    <a-form-item style="float: right;">
+                      <a-row>
+                        <a-col :span="24" :style="{ textAlign: 'right' }">
+                          <a-button type="primary" html-type="submit">
+                            Search
+                          </a-button>
+                          <a-button :style="{ marginLeft: '8px' }" @click="handleReset">
+                            Clear
+                          </a-button>
+                        </a-col>
+                      </a-row>
+                    </a-form-item>
+          </a-form>
+            </a-card>
+        </div>
           <a-button type="primary" class="new-case btn-operate" @click="addTestCase">
             <a-icon type="plus" />New Case
           </a-button>
@@ -298,7 +299,7 @@ export default {
     return {
       data:[],
       value:"",
-      status_data:[{'id':'0','value':'未执行'},{'id':'1','value':'失败'},{'id':'2','value':'成功'}],
+      status_data:[],
       queryform: this.$form.createForm(this, { name: 'case_search' }),
       project_data:[],
       status_color:{
@@ -346,7 +347,7 @@ export default {
             })
           }
           this.project_data = newData
-          console.log(this.project_data)
+         
           
         }
 
@@ -393,29 +394,32 @@ export default {
     }
     ).then(res=>{
         let newData=[]
-        let items = res.data.data
-        for( let item of items){
+        var items = res.data.data
+        // console.log(items,typeof(items))
+        if(items){
+          for( let item of items){
          
-          newData.push({
-          id:item.id,
-          casename:item.case_name,
-          project_name:item.project_name,
-          method: item.method,
-          url: item.url,
-          headers:JSON.stringify(item.headers),
-          params:item.params,
-          minetype:item.mine_type,
-           body:JSON.stringify(item.body),
-           response:JSON.stringify(item.response),
-           extract:JSON.stringify(item.extract),
-           assert_express:JSON.stringify(item.assert_express),
-           error_msg:JSON.stringify(item.error_msg),
-           status:item.status,
-           create_time:item.create_time,
-           update_time:item.update_time
+         newData.push({
+         id:item.id,
+         casename:item.case_name,
+         project_name:item.project_name,
+         method: item.method,
+         url: item.url,
+         headers:JSON.stringify(item.headers),
+         params:item.params,
+         minetype:item.mine_type,
+          body:JSON.stringify(item.body),
+          response:JSON.stringify(item.response),
+          extract:JSON.stringify(item.extract),
+          assert_express:JSON.stringify(item.assert_express),
+          error_msg:JSON.stringify(item.error_msg),
+          status:item.status,
+          create_time:item.create_time,
+          update_time:item.update_time
 
 
-        })
+       })
+       }
         }
         this.data=newData
         this.total=res.data.totals
@@ -465,7 +469,7 @@ export default {
   //pagination 
 
   onShowSizeChange(current, pageSize){
-    console.log(current, pageSize);
+   
     this.page_param.page_size=pageSize
     this.page_param.page=current
     this.getApiList()
@@ -484,7 +488,7 @@ export default {
   },
   // select one 
   onSelectChange(selectedRowKeys) {
-        console.log('selectedRowKeys changed: ', selectedRowKeys);
+        
         this.selectedRowKeys = selectedRowKeys;
       },
   batRunTestCase(){
@@ -569,6 +573,10 @@ font-weight: 600;
 }
 .head-list{
   margin-bottom: 20px;
+  margin-left: 0px;
+}
+.st-card /deep/ .ant-card-body{
+  padding: 10px;
 }
 
 

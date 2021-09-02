@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <template>
     <a-card class="trigger"  title="套件定时任务">            
                     <a-button type="primary" class="new-case btn-operate" @click="addScheduler">
@@ -36,6 +37,16 @@
                         </a-popconfirm>
                       </template>
                     </a-table>
+                    <a-pagination
+                    show-size-changer
+                    :current="page_param.page"
+                    :default-current=1
+                    :total="total"
+                    :show-total="total => `total ${total} items`"
+                    @showSizeChange="onShowSizeChange"
+                    @change="onCurrentChange"
+                    class="pagination-item"
+                  />
                     <a-modal
                     v-model="visible"  
                     :destroyOnClose="true"
@@ -257,7 +268,18 @@
             }
         },
       methods: {
+        onShowSizeChange(current, pageSize){
+            console.log(current, pageSize);
+            this.page_param.page_size=pageSize
+            this.page_param.page=current
+            this.getScheduleList()
+        },
+        onCurrentChange(page){
+            this.page_param.page = page;
+            this.getScheduleList()
+    },
 
+    // 
     handleChange(value){
         Object.assign(this, {
         value,
@@ -301,6 +323,31 @@
 
 
       },
+      getSuitesList(){
+        this.$axios({
+          url:`demo-service/api/testsuite`,
+          method:'get',
+          params:{...this.page_param}
+
+        }).then(res =>{
+          if (res.data.success ==true && res.data.code ==200 ){
+
+            let newData=res.data.data.map(item => (
+              {
+                id: item.id,
+                value: item.suite_name,
+                }
+          ));
+          this.data_suite =newData;
+          }else{
+            this.$message.error(JSON.stringify(res.data.msg))
+          }
+        }).catch(err=>{
+          console.log(err)
+        })
+
+      },
+      
 
         // change schduetype
         changeType(value){
@@ -378,8 +425,7 @@
                 }else{
                     schedule_param = values
                 }
-                console.log(schedule_param.enable)
-                console.log('Received values of form: ', schedule_param);
+
 
                 this.$axios({
                     url:`demo-service/api/schedule`,
@@ -412,7 +458,7 @@
         this.$axios({
             url:`demo-service/api/schedule`,
             method:'get',
-            params:{...this.page_parm}
+            params:{...this.page_param}
         }).then(res => {
             if (res.data.success == true && res.data.code == 200 ){
                     let newData=[]
@@ -429,7 +475,7 @@
                         })
                     }
                     this.data =newData
-                    console.log(this.data)
+                    this.total=res.data.totals
                    
 
             }else{
@@ -448,6 +494,7 @@
         },
         created () {
             this.getScheduleList();
+            this.getSuitesList();
         }
     };
     </script>
@@ -462,6 +509,9 @@
 }
 .item-name{
     width: 500px;
+}
+.pagination-item{
+  float: right;
 }
 
 </style>

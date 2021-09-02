@@ -10,13 +10,15 @@
       <a-select
       mode="multiple"
       placeholder="根据名称模糊查询"
-      :value="selectedItems"
+      
       style="width: 60%; margin-top:10px"
+      :filter-option="false"
+      @search="queryCaseByName"
       @change="handleChange"
-      @popupScroll="e=>scrollevent(e)"
       :maxTagTextLength="tagmaxlength"
+      :showArrow="true"
     >
-      <a-select-option v-for="item in filteredOptions" :key="item.id" :value="item.name">
+      <a-select-option v-for="item in OPTIONS" :key="item.id" :value="item.name">
         {{ item.name}}
       </a-select-option>
     </a-select>
@@ -47,10 +49,7 @@
   <script>
   //导入draggable组件
   import draggable from 'vuedraggable'
-  var a= []
-  for (let i=0;i<40;i++){
-       a.push(i.toString())
-    }
+  
   export default {
     //注册draggable组件
      components: {
@@ -61,10 +60,10 @@
      
     },
     computed: {
-          filteredOptions() {
-             return this.OPTIONS.filter(o => !this.selectedItems.includes(o.name));
+          // filteredOptions() {
+          //    return this.OPTIONS.filter(o => !this.selectedItems.includes(o.name));
         
-          }
+          // }
        
     },
     data() {
@@ -76,13 +75,14 @@
           selectedItems: [],
           showdrags:[],
           OPTIONS : [],
-          names_list:[],
+         
           page_param:{
             page_size: 10,
             page: 1,
           },
           totals:0,
-          tagmaxlength:20
+          tagmaxlength:20,
+          value:''
         };
     },
     methods:{
@@ -93,7 +93,7 @@
         },
         // submit 
         submit(){
-          // console.log(this.showdrags)
+          console.log(this.showdrags)
           if(!this.suiteName){
             this.$message.error("测试套件名不能为空")
           }else{
@@ -133,65 +133,27 @@
          onEnd() {
          this.drag=false;
          let arr=[]
-         for( let v of this.selectedItems){
-            let mapper = this.showdrags.filter( item => item.name ==v )[0]
+         for( let name of this.selectedItems){
+            let mapper = this.showdrags.filter( item => item.name ==name )[0]
             arr.push(mapper)
 
          }
        this.showdrags=arr
       },
 
-      // input search 
+      // change input  
       handleChange(selectedItems) {
+
+        // deal with show drags array 
         for(let name of selectedItems){
           let item = this.OPTIONS.filter(item => item.name == name )[0]
-          if(!this.showdrags.includes(item)){
+          if(!this.showdrags.includes(item) && item !=undefined){
             this.showdrags.push(item)
           }
          
         }
       this.selectedItems =selectedItems;
 
-    },
-    scrollevent(e){
-      let heights=e.target.scrollHeight, top = e.target.scrollTop, clientHeight=e.target.clientHeight
-      let distance=heights-top-clientHeight
-      
-      if (distance <10){
-        if (this.page_param.page <Math.ceil(this.totals/10)){
-          this.page_param.page=this.page_param.page+1
-          this.$axios({
-            url:"demo-service/api/testcase",
-            method:"get",
-            params:{...this.page_param}
-          }
-          ).then(res=>{
-            let newnames=[]
-            let result= Array.from(res.data.data)
-              //console.log(this.page_param.page)
-             
-              for (let item of result){
-                  newnames.push({"id":item.id,"name":item.case_name})
-                  // this.names_list=  Array.from(new Set( this.names_list.concat(newnames)))  
-                  for (let it of newnames){
-                    if (!this.names_list.includes(it)){
-                      this.names_list.push(it)
-                    }
-              }
-              // this.names_list=Object.assign([],this.names_list,newnames)
-              this.OPTIONS=this.names_list
-              
-              
-           
-            }
-
-          }).catch(err=>{
-            console.log(err)
-          })
-
-        }
-        
-      }
     },
 
     getAllCases(){
@@ -201,17 +163,38 @@
       params:{...this.page_param}
     }
     ).then(res=>{
-      let names=[],total=res.data.totals
+      let items=[],total=res.data.totals
       this.totals=total
       for (let item of res.data.data){
-        names.push({"id":item.id,"name":item.case_name})
-        this.names_list=names
-        this.OPTIONS=this.names_list
+        items.push({"id":item.id,"name":item.case_name})
+       
       }
+      this.OPTIONS=items
       
     }).catch(err=>{
       console.log(err)
     })
+    },
+    // hand search 
+    queryCaseByName(value){
+      
+      let ids=[]
+      this.$axios({
+          url:"demo-service/api/testcase",
+          method:"get",
+          params:{...this.page_param,'search':value}
+
+        }).then(res=>{
+          
+          for (let item of res.data.data){
+            ids.push({"id":item.id,"name":item.case_name})
+          }
+          
+         
+        }).catch(err=>{
+            console.log(err)
+        })
+        this.OPTIONS=ids
     }
 
 

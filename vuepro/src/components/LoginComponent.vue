@@ -1,5 +1,6 @@
 <template>
     <div class="login-home">
+        
         <a-form
         name="loginform"
         id="components-form-demo-normal-login"
@@ -7,6 +8,10 @@
         class="login-form"
         @submit="handleSubmit"
       >
+
+        <a-form-item>
+          <h1>测试管理lab</h1>
+        </a-form-item>
         <a-form-item>
           <a-input
      
@@ -48,54 +53,66 @@
             <router-link to="/recallpassword">Forgot password</router-link>
           </a>
           <a-button type="primary" html-type="submit" class="login-form-button">
-            Log in
+            Login
           </a-button>
-          Or
+         
           <a href="">
            <router-link to="/adduser"> register now!</router-link>
           </a>
         </a-form-item>
+ 
       </a-form>
+      
     </div>
 
   </template>
   
   <script>
+  import { mapMutations } from 'vuex';
+  import Cookies from 'js-cookie'
   export default {
+    data(){
+  return{
+  
+  }
+    },
     beforeCreate() {
       this.form = this.$form.createForm(this, { name: 'normal_login' });
     },
     methods: {
-      // submit method 
+      ...mapMutations(['changeLogin']),
+      
       handleSubmit(e) {
         e.preventDefault();
-        // var formvalue=document.loginform;
-        // console.log(formvalue.userName.value+"\n"+formvalue.password.value)
         this.form.validateFields((err, values) => {
           if (!err) {
             let data={
-              name:values.userName,
-              price:values.password,
-              publish:1
+              username:values.userName,
+              password:values.password,
             };
 
             this.$axios(
-              
                 {
-                    url: '/demo-service/api/v1/book/',
+                    url: '/demo-service/api/login/',
                     method: 'post',
                     data: data,
                     // headers:{'Content-Type': 'application/json;charset=UTF-8'},
                     xsrfCookieName: 'csrftoken',
                     xsrfHeaderName: 'X-CSRFToken',
+
                 }
 
               ).then(res => {
-                console.log(res.data);
                 if(res.data.code==200){
-                  this.$message.success('真牛逼,已经登陆成功了');
-                  // console.log(this.$route);
-                  this.$router.push({path:'home'})
+                  this.$message.success('login success!');
+                  let ticket =res.data.data.token
+                 
+                  // window.sessionStorage.setItem('token', ticket)
+                  //this.$cookies.set('token', ticket,60*5) 
+                 
+                  let expires =new Date(new Date().getTime() + 1* 1 * 60 * 1000);
+                  //Cookies.set('token', ticket, { expires: expires });
+                  this.$router.push({path:'index'})
                 }else{
                   this.$message.error("登陆失败，用户名or密码错误")
                 }
@@ -103,8 +120,7 @@
               )
               .catch(
               (error)=> {
-                console.log(error);
-                this.$message.error("token失效，请重新登陆")
+                this.$message.error(error.message)
               }
               )
           }
@@ -127,6 +143,7 @@
   .login-home{
     height: 100%;
     width: 100%;
+    background-color: #2d3a4b;
  
   }
 

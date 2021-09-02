@@ -14,3 +14,10 @@ export default {
   }),
 };
 </script>
+
+<style>
+
+* {
+  touch-action:none;
+}
+</style>

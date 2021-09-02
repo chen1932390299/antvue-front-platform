@@ -6,12 +6,12 @@
           测试管理平台
         </div>
         <a-menu theme="dark" mode="inline" :default-selected-keys="['1']">
-          <a-sub-menu>
+          <!-- <a-sub-menu>
               <span slot="title" icon>
               <router-link to="/home"><a-icon type="home" />首页</router-link></span>
-          </a-sub-menu>
+          </a-sub-menu> -->
 
-          <a-sub-menu key="2">
+          <a-sub-menu key="1">
             <!-- <span><router-link to="/version"><a-icon type="menu" />版本统计</router-link></span> -->
             <span slot="title"><a-icon type="menu" />版本管理</span>
             <a-menu-item key="21">
@@ -99,10 +99,10 @@
             </a>
             <a-menu slot="overlay" @click="onClick">
               <a-menu-item key="1">
-                <a-icon type="logout" />退出
+                <router-link to="/login"><a-icon type="logout" />退出</router-link>
               </a-menu-item>
               <a-menu-item key="2">
-               <router-link to="/updatePassword"><a-icon type="tool" /> 修改密码</router-link>
+               <router-link to="/user/info/update"><a-icon type="tool" /> 修改密码</router-link>
               </a-menu-item>
             </a-menu>
           </a-dropdown>
@@ -120,10 +120,10 @@
     </a-layout>
   </template>
   <script>
-  import Tablelist from '@/components/Tablelist.vue'
+
  
   import FormSearch from '@/components/FormSearch.vue'
-  import modalbox from '@/components/AddModal.vue'
+  // import modalbox from '@/components/AddModal.vue'
   
   export default {
     data() {
@@ -133,10 +133,15 @@
         useraddVisible:false
       };
     },
-    components:{'tablelist':Tablelist,'formsearch':FormSearch,modalbox},
+    components:{'formsearch':FormSearch},
     methods: {
       onClick(){
 
+      },
+      logout(){
+        this.$router.push({
+          name:'login'
+        })
       }
     }
   };

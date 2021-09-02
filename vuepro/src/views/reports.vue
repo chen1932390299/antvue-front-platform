@@ -2,28 +2,93 @@
     
     <div>
         <div>
-            <div>
-             <a-card style="width: 60%;" title="TestCase结果统计">
-              <span>项目:  
-                <a-select 
-                :allow-clear="true"
-            
-                :filter-option="false"
-                placeholder="搜索项目名称"
-                show-search
-                style="width: 120px" 
-                @search="queryProject"
-                @change="handleChange">
-                <a-select-option v-for="d in projects" :value="d.id" key="d.id">
-                  {{d.value}}
-                </a-select-option>
-              </a-select>
-            </span>
-
-                 <ve-pie :data="chartData" :settings="chartSettings" ></ve-pie>
+          <div>
+                  <a-card title="DashBoard 看板">
+             
+                      <a-card-grid class="card-grid-item">
+                        
                 
-            </a-card>
-            </div>
+                            <a-row :gutter="16" style="margin-top: 20%;">
+                              <a-col :span="8">
+                                <a-card>
+                                  <a-statistic
+                                    title="总数"
+                                    :value="summary.totals"
+                                    :precision="2"
+                                   
+                                    :value-style="{ color: '#3f8600' }"
+                                    style="margin-right: 50px"
+                                  >
+                                    <template #prefix>
+                                      <a-icon type="arrow-up" />
+                                    </template>
+                                  </a-statistic>
+                                </a-card>
+                              </a-col>
+                              <a-col :span="8">
+                                <a-card>
+                                  <a-statistic
+                                    title="成功"
+                                    :value="summary.success"
+                                    :precision="2"
+                                   
+                                    :value-style="{ color: '#3f8600' }"
+                                    style="margin-right: 50px"
+                                  >
+                                    <template #prefix>
+                                      <a-icon type="arrow-up" />
+                                    </template>
+                                  </a-statistic>
+                                </a-card>
+                              </a-col>
+                              <a-col :span="8">
+                                <a-card>
+                                  <a-statistic
+                                    title="失败"
+                                    :value="summary.failed"
+                                    :precision="2"
+                                   
+                                    class="demo-class"
+                                    :value-style="{ color: '#cf1322' }"
+                                  >
+                                    <template #prefix>
+                                      <a-icon type="arrow-down" />
+                                    </template>
+                                  </a-statistic>
+                                </a-card>
+                              </a-col>
+                            </a-row>
+                    
+               
+                        
+                  
+                      </a-card-grid>
+                  
+               
+                      <a-card-grid  class="card-grid-item">
+                        <span>项目:  
+                          <a-select 
+                          :allow-clear="true"
+                      
+                          :filter-option="false"
+                          placeholder="搜索项目名称"
+                          show-search
+                          style="width: 120px" 
+                          @search="queryProject"
+                          @change="handleChange">
+                          <a-select-option v-for="d in projects" :value="d.id" key="d.id">
+                            {{d.value}}
+                          </a-select-option>
+                        </a-select>
+                      </span>
+                          <ve-pie :data="chartData" :settings="chartSettings" ></ve-pie>
+                      </a-card-grid>
+     
+           
+                  </a-card>
+
+        
+          </div>
      
             <div>
                 <a-tabs>
@@ -64,19 +129,49 @@
   </template>
   <script>
   export default {
-    beforeCreate () {
+
+    created () {
+      this.getCaseStatus();
+      this.getFailList();
+      this.getProjectsList();
+    },
+
+    methods:{
+
+      getCaseStatus(){
+        
         this.$axios({
                 url:`demo-service/api/testcase/status`,
                 method:'get',
                 params:{project_id:this.project_id}
             }).then(res =>{
                 if (res.data.success == true && res.data.code ==200 ){
-                    let success_count=res.data.data.success, failed_count= res.data.data.false, undefine_count = res.data.data.undefined
-                    this.chartData.rows=[
-                    { 'status': 'success', 'count':success_count},
-                    { 'status': '未知', 'count': undefine_count},
-                    { 'status': 'failed','count': failed_count }
+                    if (res.data.data.length ==0){
+                      this.chartData.rows=[
+                    { 'status': 'success', 'count':0},
+                    { 'status': '未知', 'count': 0},
+                    { 'status': 'failed','count': 0}
                     ]
+                    this.summary={
+                      'totals':0,
+                        'success':0,
+                        'failed':0
+                    }
+                    }else{
+                      let success_count=res.data.data.success, failed_count= res.data.data.false, undefine_count = res.data.data.undefined
+                      
+                      this.summary={
+                        'totals':success_count+failed_count+undefine_count,
+                        'success':success_count,
+                        'failed':failed_count
+                      }
+                      this.chartData.rows=[
+                      { 'status': 'success', 'count':success_count},
+                      { 'status': '未知', 'count': undefine_count},
+                      { 'status': 'failed','count': failed_count }
+                      ]
+                    }
+ 
                 }else {
                  let error = JSON.stringify(res.data.msg)
                  this.$message.error(error)
@@ -85,13 +180,7 @@
             }).catch(err =>{
                 console.log(err)
             })
-
-    },
-    created () {
-      this.getFailList()
-    },
-
-    methods:{
+      },
       getFailList(){
         this.$axios({
                 url:`demo-service/api/testcase/status/detail`,
@@ -120,14 +209,14 @@
       },
       // go to detail 
       showDetailPage(item){
-        console.log(item)
+       
         this.$router.push({
             path: `/api/detail/${item.id}`
 
             })
       },
       onShowSizeChange(current, pageSize){
-        console.log(current, pageSize);
+        
         this.page_param.page_size=pageSize
         this.page_param.page=current
         this.getFailList()
@@ -138,13 +227,38 @@
       },
 
       handleChange(value){
-        // console.log(value)
         this.project_id =value
-        this.getFailList()
+        this.getCaseStatus();
+        this.getFailList();
         
       },
+
+      getProjectsList(){
+        this.$axios({
+          url:`demo-service/api/projects`,
+          method:'get',
+          params:{...this.page_param}
+
+        }).then(res =>{
+          if (res.data.success ==true && res.data.code ==200){
+            let newData=res.data.data.map(item => (
+              {
+                id: item.id,
+                value: item.project_name,
+                }
+          ));
+          this.projects=newData;
+          }else{
+            this.$message.error(JSON.stringify(res.data.msg))
+          }
+
+
+        }).catch(err=>{
+          console.log(err)
+        })
+      }
+      ,
       queryProject(value) {
-        // console.log(value)
       this.$axios({
           url:`demo-service/api/projects`,
           method:'get',
@@ -152,6 +266,7 @@
 
         }).then(res =>{
           if (res.data.success ==true && res.data.code ==200){
+ 
             let newData=res.data.data.map(item => (
               {
                 id: item.id,
@@ -177,10 +292,15 @@
         type:'pie',
       }
       return {
-        avant:require('@/assets/avant.png'),
+        avant:require('@/assets/hubcat.jpeg'),
         projects:[],
         project_id:'',
         data:[],
+        summary:{
+          'totals':0,
+          'success':0,
+          'failed':0
+        },
         // pipe
         chartData: {
           columns: ['status','count'],
@@ -208,6 +328,11 @@
       float: right;
     }
     .fail-item{
-      color:dodgerblue
+      color:red
+    }
+    .card-grid-item{
+      width: 45%;
+      height: 400px;
+      margin: 20px;
     }
   </style>

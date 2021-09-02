@@ -6,14 +6,7 @@
         <a-button  @click="goback">
             <a-icon type="left" />backward
           </a-button>
-        <a-form-model ref="ruleForm" :model="ruleForm" :rules="rules"  :label-col="{ span: 4 }" :wrapper-col="{span:5}" >
-            <a-form-model-item has-feedback label="email" prop="email">
-              <a-input v-model="ruleForm.email" type="email" autocomplete="off" />
-            </a-form-model-item>
-            <a-form-model-item >
-              <a-button type="primary" @click="submitInfo('ruleForm')" style="margin-left:400px;">submit</a-button>
-            </a-form-model-item>
-          </a-form-model>
+        <a-empty description="Please contact with admin , thanks!!!"  style="margin-top: 20px; font-size: larger;" />
     
         </a-card>
 

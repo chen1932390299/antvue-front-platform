@@ -48,7 +48,7 @@
       @ok="handleOk" 
        width="60%">
 
-          <a-form layout="inline"  :form="form" >
+          <a-form layout="horizontal"  :form="form" >
             <a-form-item  label="Variable Name">
               <a-input  style="width: 350px;"
               v-decorator="['name', { rules: [{ required: true, message: 'Please input your Variable Name!' }] }]"
