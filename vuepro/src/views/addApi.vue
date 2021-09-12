@@ -1,6 +1,8 @@
 <template>
 
-    <a-card  title="编辑接口" :bordered="true" class="create-card" ref="apiedit">
+    <a-card  title="新增接口" :bordered="true" class="create-card">
+
+
 
      <a-form  :form="baseform">
 
@@ -10,6 +12,7 @@
               v-decorator="['casename', { rules: [{ required: true, message: 'Please input your casename!' }] }]"
             />
         </a-form-item>
+
         <a-form-item label="项目名称">
             <a-select
             v-decorator="[
@@ -20,17 +23,19 @@
               ],
             },
           ]"
-          placeholder="输入项目名称"
-          style="width: 100%"
-          show-search
-          :showArrow="true"
-          :filter-option="false"
+            placeholder="输入项目名称"
+            style="width: 100%"
+            show-search
+            label-in-value
           
-          :not-found-content="fetching ? undefined : null"
+            :showArrow="true"
+            :filter-option="false"
+            :not-found-content="fetching ? undefined : null"
+        
             @search="queryProject"
             @change="e=>changeQueryProject(e)"
           >
-            <a-select-option v-for="d in data_project" :key="d.id" :value="d.value">
+            <a-select-option v-for="d in data_project" :key="d.id" :value="d.id">
               {{d.value}}
             </a-select-option>
           </a-select>
@@ -61,6 +66,7 @@
                     <a-select-option value="DELETE">
                         DELETE
                     </a-select-option>
+      
                 </a-select>
             </a-input>
             <a-button type="primary" @click="sendRequest" class="send-btn">
@@ -96,7 +102,7 @@
                                         <a-input v-model="item.value"  class="input-line" @change="paramValueChange"></a-input>
                                     </a-form-item>
                                     <a-form-item>
-                                        <a-icon v-if="index !== 0" @click="deleteItem(item, index)"  class="dynamic-delete-button"
+                                        <a-icon v-if="index >= 0" @click="deleteItem(item, index)"  class="dynamic-delete-button"
                                             type="minus-circle-o"></a-icon>
                                     </a-form-item>
                                 </div>
@@ -130,8 +136,7 @@
                         <a-radio-group 
                         name="radioGroup" 
                         @change="bodyChange"
-                        v-model="body.bodytype"
-                        
+                        :default-value="1"
                         >
                         <a-radio :value="1">
                             none
@@ -198,6 +203,11 @@
                                               </template>
                                         </div>
                                         <div v-else>
+                                              <!-- <a-input
+                                              v-if="canedit"
+                                              type="file"
+                                              >
+                                              </a-input> -->
                                               <a-upload v-if="canedit"
                                               name="file"
                                               :multiple="true"
@@ -378,8 +388,9 @@
                             </a-form>
                           </div>
                     </a-card>
-                </a-tab-pane>
 
+
+                </a-tab-pane>
               </a-tabs>
           </div>
 
@@ -459,45 +470,30 @@
 
     export default{
 
-    components: {
-            
-                },
+        components: {
+        
+    },
     
     beforeCreate () {
-                let id =this.$route.params.id
-                this.$axios.get(`demo-service/api/testcase/${id}`).then(res=>{
-                    let data= res.data.data
-                    this.project_defaultname=data.project_defaultname
-                    this.$nextTick(()=>{
-                        this.baseform.setFieldsValue({method:data.method,baseUrl:data.url,casename:data.case_name,project_id:data.project_name})
-                                });    
-                        this.body.bodytype=parseInt(data.mine_type) // if don't need parse ,bug of backend model charfield should define intgerfiled 
-                        this.baseUrlChange(data.url)
-                        this.responsedata=data.response
-                        this.extract.value=JSON.stringify(data.extract)
-                        this.headerform.header.headerValue=JSON.stringify(data.headers)
-                        this.variablesForm.parameter=data.assert_express
-                        if (data.mine_type == '1'){
-                        }else if (data.mine_type == '2'){
-                            this.body.formData=data.body
-                        }else if (data.mine_type == '3'){
-                            this.body.encodebody=JSON.stringify(data.body)
-                        }else if (data.mine_type == '4'){
-                            this.body.jsonbody=JSON.stringify(data.body)
-                        }
-                }).catch(err=>{
-                    console.log(err)
-                })
+        this.$nextTick(()=>{
+        this.baseform.setFieldsValue({method:"GET"})
+        
+                           });
+    },
 
-  
+    created () {
+      this.getProjectsList()
     },
 
     data () {
         return {
-            project_defaultname:'',
             data_project:[],
             value: undefined,
             fetching: false,
+            page_param:{
+                page_size: 10,
+                page: 1,
+            },
             layouts:{
 
             paramlayout:{
@@ -505,11 +501,12 @@
                 wrapperCol: { span: 19 }
             } 
             },
-            paramsForm:{
-                        parameter:[]
-            },
             variablesForm:{
                 parameter:[]
+            },
+
+            paramsForm:{
+                        parameter:[]
             },
 
             baseform: this.$form.createForm(this, { name: 'baseform' }),
@@ -521,7 +518,7 @@
             }
        ,
             body:{
-                bodytype:'1',
+                bodytype:1, // minetype
                 formData:[],   // form-data
                 encodebody:'{}', // www-urlencoded
                 jsonbody:'{}', // json
@@ -537,31 +534,13 @@
             responsedata:"{}",
             extract:{
                 value:"{}"
-            }
+            },
+       
     
     
         }
     },
     methods: {
-        variableKeyChange(){
-
-},
-variableValueChange(){
-
-},
-
-        // edit get current id data 
-        getOneData(id){
-        return new Promise((resolve, reject) => {
-                this.$axios.get(`demo-service/api/testcase/${id}`).then((res) => {
-                    resolve(res.data)
-                }).catch((err) => {
-                reject(err.data)   
-                })
-            })
-        }
-        ,
-        // baseUrl dynamic change 
         dynamicPath(){
         this.$nextTick(()=>{
                     let values = this.baseform.getFieldsValue()
@@ -625,124 +604,135 @@ variableValueChange(){
         },
         bodyChange(e){
             this.body.bodytype=e.target.value
-           
+            console.log(this.body.bodytype)
         },
         changeEncodeBody(value){
             
             this.body.encodebody=value
-            
+            console.log(this.body.encodebody)
         },
         changeJsonBody(value){
             this.body.jsonbody=value
-            
+            console.log(this.body.jsonbody+"1111")
         },
-         //extract var 
+        //extract var 
         changeExtractValue(value){
          
-         this.extract.value=value
-     },
-       // check variables name has exists
-       checkVariableName(nameString){
+            this.extract.value=value
+        },
 
-           this.$axios({
-            url:`demo-service/api/variables`,
-            method:"get",
-            params:{name:nameString}
 
-           }.then(res=>{
-               let error_msg=""
-               let data = res.data.data
-               if(!data){
-                  data.forEach(function(item,index,arr){
-                      nameArray=nameString.trim().split(" ")
-                      if (item.name in nameArray)
-                      error_msg = error_msg+ " "+ item.name
-                  })
-                  this.$message.error(error_msg+" 等变量已存在，请更换其他的变量名称")
-                  return 
-
-               }
-
-           }).catch(err=>{
-               console.log(err)
-           })
-
-           )
-
-       },
-
-        // pass
+        // submit
         onSave(){
             this.baseform.validateFields((err, values) => {
             if (this.body.bodytype === undefined){
                 this.$message.error("请选择 body minetype ")
             }
-            if (!err) {
-                // console.log('Received values of form: ', values);
-                let paramList = Array.from(this.paramsForm.parameter)
-                let parameters=this.encodeParamList(paramList)
-                let headers = JSON.parse(this.headerform.header.headerValue)
-                let body ={},submitData={},extract=JSON.parse(this.extract.value)
-                let assert_express = Array.from(this.variablesForm.parameter).filter(item=> item.key !="")
+            var extract=JSON.parse(this.extract.value)
+            let nameString = Object.keys(extract).join(" ")
+            console.log(nameString)
+            if (values){
+                    this.$axios({
+                        url:"demo-service/api/variable/check",
+                        method:"get",
+                        params:{name:nameString}
 
-                if (values.method == "GET"){
- 
-                }else if (values.method == "POST"|| values.method == "PUT"|| values.method == "PATCH" || values.method == "DELETE"){
-                    body={}
-                    if (this.body.bodytype == "1"){
-                        this.$message.error("post method body radio type can't select none !")
-                        return
-                    }
-                    else if(this.body.bodytype == "2"){
-                        // form-data
-                        let formdata=this.body.formData
-                        body=JSON.stringify(Array.from(formdata)) !='[]'? Array.from(formdata):{}
-                    }else if (this.body.bodytype == "3"){
-                        // www-urlencode 
-                        body= JSON.parse(this.body.encodebody)
-                    }else if (this.body.bodytype == "4"){
-                        // json 
-                        body=JSON.parse(this.body.jsonbody)
-                    }
+                        }).then(res=>{
+                       
+                            if (res.data.success == true){
+                                    
+                                    if (!err) {
+                                            console.log('Received values of form: ', values);
+                                            let paramList = Array.from(this.paramsForm.parameter)
+                                           
+                                            let parameters=this.encodeParamList(paramList)
+                                            let headers = JSON.parse(this.headerform.header.headerValue)
+                                            let body ={},submitData={}
+                                            
+                                            let assert_express=Array.from(this.variablesForm.parameter).filter(item=> item.key !="")
+                                        
+                                            if (values.method == "GET"){
+                            
+                                            }else if (values.method == "POST"|| values.method == "PUT"|| values.method == "PATCH" || values.method == "DELETE"){
+                                                body={}
+                                                if (this.body.bodytype == "1"){
+                                    
+                                                    // consider backend pure url request deal with when request delete or get 
+                                                }
+                                                else if(this.body.bodytype == "2"){
+                                                    // form-data
+                                                    let formdata=this.body.formData
+                                                    body=JSON.stringify(Array.from(formdata)) !='[]'? Array.from(formdata):{}
+                                                }else if (this.body.bodytype == "3"){
+                                                    // www-urlencode 
+                                                    body= JSON.parse(this.body.encodebody)
+                                                }else if (this.body.bodytype == "4"){
+                                                    // json 
+                                                    body=JSON.parse(this.body.jsonbody)
+                                                }
+                                                
+                                            }
+                                            // js 判断字典为空 JSON.stringify(obj) == '{}'
+                                            // check pass submit request 
+                                            submitData=Object.assign({},
+                                                {
+                                                "body":body,
+                                                "mine_type":this.body.bodytype,
+                                                "params":parameters,
+                                                "headers": headers,
+                                                "method":values.method,
+                                                "url":values.baseUrl,
+                                                "case_name":values.casename,
+                                                "project_name":values.project_name,
+                                                "extract":extract,
+                                                "assert_express":assert_express,
+                                                "project_id":this.value.key
+                                                })
+                                            this.$axios({
+                                                url:"demo-service/api/testcase",
+                                                method:"post",
+                                                data:submitData
+                                            }).then(res=>{
+                                                if (res.status==200 && res.data.success == true){
+                                                    this.$message.success("create success!")
+                                                    this.$router.push({name:"api-list"})
+                                                }else{
+                                                let error_message= res.data.msg
+                                                this.$message.error(JSON.stringify(error_message))
+
+                                                }
+
+                                                
+                                            }).catch(err=>{
+                                                console.log("xxxxx")
+                                                this.$message.error(JSON.stringify(err))
+                                            })
+                                    
+                                        }else{
+                                            
+                                            this.$message.error("请检验表单必填检验错误！");
+                                        }
+
+                            }else{
+                                let errors = res.data.msg
+                                this.$message.error("重复变量： "+JSON.stringify(errors))
+
+                            }
+
+
+                        }).catch(err=>{
+                            console.log(err)
+                        })
                     
-                }
-                // js 判断字典为空 JSON.stringify(obj) == '{}'
-                // check pass submit request 
-                submitData=Object.assign({},
-                    {
-                    "body":body,
-                    "mine_type":this.body.bodytype,
-                    "params":parameters,
-                    "headers": headers,
-                    "method":values.method,
-                    "url":values.baseUrl,
-                    "case_name":values.casename,
-                    "extract":extract,
-                    "assert_express":assert_express,
-                    "project_id":this.value
-                    })
-               
-                let id =this.$route.params.id
-                this.$axios({
-                    url:`demo-service/api/testcase/${id}`,
-                    method:"patch",
-                    data:submitData
-                }).then(res=>{
-                    this.$message.success("save success!")
-                    this.$router.push({"name":"apilist"})
-                   // this.$message.success(JSON.stringify(res.data))
-                    
-                }).catch(err=>{
-                    this.$message.error(err)
-                })
-           
             }else{
-                this.$message.error("请检验表单必填检验错误！");
+                console.log("xxxxxxxxxxx")
             }
+
         });
 
 
         },
+        // [{'k':v},{'':''}] to filter empty key dict
         transferParams(value){
             let res={}
             if (value && value !=undefined){
@@ -757,9 +747,8 @@ variableValueChange(){
             return res 
 
         },
-        // encodeParamters
+        // encodeParamters from {'k1':v1,'k2':v2} to k1=v1&k2=v2
         encodeParamList(paramList){
-            
             let encodeurl=''
             if (JSON.stringify(paramList) !='[]'){
                 let arr=[]
@@ -776,31 +765,18 @@ variableValueChange(){
             return encodeurl
 
         },
-
-        getPostBody(){
-            if (this.body.bodytype == "1"){
-                return null
-            }else if(this.body.bodytype == "2"){
-                return {}
-            }else if(this.body.bodytype == "3"){
-                return {}
-            }else if(this.body.bodytype == "4"){
-                return {}
-            }
-        },
         onCancle(){
-           this.$router.push({
-               "name":"apilist"
-           })
+          this.$router.push({
+              name:"api-list"
+          })
         },
         //formdata 修改 record type属性 "text" ,"file"
         selectChange(e,record,index){
         record.keyType=e
         // filter 保留符合条件的
         //let newvar= this.body.formData.filter(item=>item.keyType == e)
-
-      
       },
+
       // formdata change，根据行数据修改动态修改行属性为最新属性
       handleChange(value, index, column,record) {
         record[column]=value
@@ -890,44 +866,36 @@ variableValueChange(){
                 // Something happened in setting up the request that triggered an Error
                 console.log('Error', error.message);
                 }})    
-            },
-        //  assert 
-        deleteVariable(item,index){
-            this.variablesForm.parameter.splice(index, 1);
-        },
-        addVariable(){
-            this.variablesForm.parameter.push({
-                key: "",
-                value: "",
-                operator:"eq"
-                });
-        },
-        // 
-        changeQueryProject(value){
+    },
+
+    // extract var prefix
+    variableKeyChange(){
+
+    },
+    variableValueChange(){
+
+    },
+    deleteVariable(item,index){
+        this.variablesForm.parameter.splice(index, 1);
+    },
+    addVariable(){
+        this.variablesForm.parameter.push({
+            key: "",
+            value: "",
+            operator:"eq"
+            });
+    },
+    handleOperateChange(value,item,index){
+        item.operator=value
+        //console.log(this.variablesForm.parameter)
+
+    },
+    // project select 
+    changeQueryProject(value){
         this.value=value
-        console.log(value)
-        this.$axios({
-            url:`demo-service/api/projects`,
-          method:'get',
-          params:{'search':value,...this.page_param}
 
-        }).then(res=>{
-            if (res.data.code ==200 && res.data.success == true ){
-                let resoponse =  res.data.data 
-                for (let item of resoponse){
-                    if( item.project_name == value ){
-                        this.value = item.id 
-                    }
-                }
-            }
-        })
-
-        .catch(err=>{
-
-        })
-
-        },
-        queryProject(value){
+    },
+    queryProject(value){
         this.fetching = true;
         this.$axios({
           url:`demo-service/api/projects`,
@@ -953,7 +921,34 @@ variableValueChange(){
           console.log(err)
         })
 
+    },
+
+    getProjectsList(){
+      this.$axios({
+          url:`demo-service/api/projects`,
+          method:'get',
+          params:{...this.page_param}
+
+        }).then(res =>{
+          if (res.data.success ==true && res.data.code ==200){
+            let newData=res.data.data.map(item => (
+              {
+                id: item.id,
+                value: item.project_name,
+                }
+          ));
+          this.data_project=newData;
+          
+          }else{
+            this.$message.error(JSON.stringify(res.data.msg))
+          }
+
+
+        }).catch(err=>{
+          console.log(err)
+        })
     }
+
 
 
     },
@@ -984,6 +979,7 @@ variableValueChange(){
           }
     .send-btn{
         margin-left: 15px;
+  
     }
     .variable-define{
         margin-bottom: 20px;
@@ -993,5 +989,29 @@ variableValueChange(){
         width: 300px;
 
     }
+
+   .operate-text{
+       width:100px;
+   }
+
+    .operate-text ul::-webkit-scrollbar-thumb{
+
+    display: none;
+    }
+    .operate-text ul ::-webkit-scrollbar{
+
+    display: none;
+    }
+    .operate-text ul::-webkit-scrollbar-track{
+
+        display: none;
+    }
+
+        
+ 
+
+
+
+
 
 </style>

@@ -7,14 +7,13 @@
        class="search-user"
        enter-button @search="onSearch" />
       <a-table :columns="columns" :data-source="data" row-key="id">
-        
+        <template slot="operation" slot-scope="text, record,index">
+          <a-button type="link" @click="RelatedRoles(index,record)">关联角色</a-button>
+        </template>
       </a-table>
     </a-tab-pane>
-    <a-tab-pane key="2" tab="角色列表" force-render>
-      <roles></roles>
-    </a-tab-pane>
-    <a-tab-pane key="3" tab="用户角色关联">
-     <user-related-role></user-related-role>
+    <a-tab-pane key="3" tab="关联关系列表">
+     <relation-list></relation-list>
     </a-tab-pane>
   </a-tabs>
 
@@ -24,7 +23,7 @@
 <script>
 
   import roles from '@/views/roles'
-  import UserRelatedRole from '@/views/UserRelatedRole'
+  import RelationList from '@/views/RelationList'
   const columns = [
   {
     title: 'username',
@@ -55,12 +54,18 @@
     dataIndex: 'update_time',
     key: 'update_time',
     ellipsis: true,
-  }
+  },
+  {
+    title: '操作',
+    key: 'operation',
+    scopedSlots: { customRender: 'operation' }
+
+  },
 ];
 export default{
   name:"user",
   components: {
-    roles,UserRelatedRole
+    roles,RelationList
   },
   data () {
     return {
@@ -77,6 +82,16 @@ export default{
   }
   ,
   methods: {
+    RelatedRoles(index,record){
+
+        this.$router.push({
+          name:"add-relation",
+          params:{
+            id:record.id
+          }
+        })
+    },
+
     ChangeTab(key){
       this.$store.state.defalutKey = key ;
 

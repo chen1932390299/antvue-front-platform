@@ -381,7 +381,7 @@ export default {
     addTestCase(){
       this.$router.push({
 
-        name:"apiadd"
+        name:"api-add"
       })
 
     },

@@ -118,7 +118,7 @@
             goBackTaskList(){
                 this.$store.state.suiteKey = '2'
                 this.$router.push({
-                    'name':'suitelist'
+                    'name':'suite-list'
                 })
                
             }

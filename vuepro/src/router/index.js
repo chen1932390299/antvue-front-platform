@@ -11,50 +11,56 @@ Vue.use(Router)
 
 const routes= 
             [
-            // {path:'/edit',component: () => import('@/components/DrawCompoment.vue'),name:'edit'}
+            
             { path: '/', redirect: '/login' ,name:'/'}, 
             { 
             path: '/login', 
-            component:()  => import('@/components/LoginComponent.vue'),
+            component:()  => import('@/components/login.vue'),
             name:'login' 
             },
             {path:'/adduser',  component:() => import('@/views/addUser.vue')},
-            {path:'/user/info/update',  component:() => import('@/views/UserInfoUpdate.vue')},
-            {path:'/recallpassword',  component:() => import('@/views/forgotpwd.vue')},
+            //{path:'/user/related/role',name:'user-related-role',component:() => import('@/views/UpdateRelationRole.vue')},
+            {path:'/user/info/update',  component:() => import('@/views/editUser.vue')},
+            {path:'/recall/password',  component:() => import('@/views/recallPassWord.vue')},
        
             { 
             path: '/index', 
            
-            component: () => import('@/components/Layout.vue'),
+            component: () => import('@/components/home.vue'),
             children:
                     [
-                  {path:'',redirect: '/apilist'},
-                  {path:'/suitelist',name:'suitelist',component: () => import('@/views/testSuite.vue')},
+                  {path:'',redirect: '/api/list'},
+                  {path:'/user/related/add',name:'add-relation',component:() => import('@/views/addRelationRole.vue')},
+                  {path:'/user/relation/edit',name:'relation-edit',component:() => import('@/views/editRelation.vue')},
+                  {path:'/menu/resource',name:'menu-resource',component: ()=> import('@/views/rightMenu.vue')},
+                  {path:"/resource/add",name:"add-resource",component: ()=> import("@/views/addResource.vue")},
+                  {path:'/suite/list',name:'suite-list',component: () => import('@/views/testSuiteList.vue')},
                   {path:'/task/record/detail/:id',name:'task-record',component: () => import('@/views/TaskRecordDetail.vue')},
-                  { path:'/suite/deatail/:id',name:'suite-detail',component: () => import('@/views/SuiteDetail.vue')},
+                  { path:'/suite/deatail/:id',name:'suite-detail',component: () => import('@/views/suiteDetail.vue')},
                   {path:'/task/add',name:"add-task",component:() => import('@/views/addTask.vue')},
                   { path:'/variables',name:'variables',component: () => import('@/views/globalVariables.vue')},
                   { 
-                      path:'/apilist',name:'apilist',
-                      component: () => import('@/views/apilist.vue'),  
+                      path:'/api/list',name:'api-list',
+                      component: () => import('@/views/apiList.vue'),  
                       meta: {
                               requireAuth: false
                             }
                   },
-                  {path:'/report',name:'report', component:() => import('@/views/reports.vue')},
-                  {path:'/trigger',name:'trigger', component:()=> import('@/views/triggers.vue')},
+                  {path:'/report',name:'report', component:() => import('@/views/dashBoard.vue')},
+                  {path:'/schedule/page',name:'trigger', component:()=> import('@/views/triggers.vue')},
                   { path:'/editapiList',name:'editapiList',component: () => import('@/views/editapiList.vue')},
-                  { path:'/apiadd',name:'apiadd',component: () => import('@/views/apiadd.vue')},
+                  { path:'/api/add',name:'api-add',component: () => import('@/views/addApi.vue')},
                   { path:'/api/detail/:id',name:'api-detail',component: () => import('@/views/apiDetail.vue')},
-                  { path:'/drag',name:'drag',component: () => import('@/views/dragdemo.vue')},
-                  { path:'/version',name:'version',component: () => import('@/views/Version.vue')},
-                  { path:'/bug',name:'bug',component: () => import('@/views/demo.vue')},
+                  { path:'/suite/add',name:'add-suite',component: () => import('@/views/addSuite.vue')},
+                  { path:'/publish',name:'version',component: () => import('@/views/publish.vue')},
+                  { path:'/testcase',name:'testcase',component: () => import('@/views/testCase.vue')},
                   {path:'/user', name:'user-list', component:() => import('@/views/User.vue')},
                   {path:'/projects', name:'projects' ,component:() => import('@/views/projectConfig.vue')},
                   {path:'/projects/add', name:'addProject' ,component:() => import('@/views/addProject.vue')},
-                  {path:'/setting',  component:() => import('@/views/Setting.vue')},
+                  {path:'/setting',  component:() => import('@/views/setting.vue')},
                   {path:'/roles',name:'role-list',  component:() => import('@/views/roles.vue')},
-                  {path:'/addrole',  component:() => import('@/views/addrole.vue')}
+                  {path:'/addrole',  component:() => import('@/views/addrole.vue')},
+                  {path:'/about/us',name:'about-us',  component:() => import('@/views/doc/about.vue')}
               ]
 
             
